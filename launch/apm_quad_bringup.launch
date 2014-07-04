@@ -1,0 +1,32 @@
+<launch>
+	<group ns ="apm">
+		<!-- DATA RECORDING -->
+		<node pkg="rosbag" type="record" name="record" args="record -o /home/balto/bagfiles/apm_data --all" />
+		<!-- MOCAP     -->
+	 	<node pkg="mocap_optitrack" 
+			type="mocap_node" 
+			name="mocap_node" 
+			respawn="false"
+			launch-prefix=""
+			required="true">
+			<rosparam file="$(find apm)/viz/mocap.yaml" command="load" />
+		</node>
+		<node respawn="true" pkg="joy" type="joy_node" name="joy" >
+			<param name="dev" type="string" value="/dev/input/js0" />
+			<param name="deadzone" value="0.2" />
+			<param name="~autorepeat_rate" value="10" />
+		</node>
+		<!-- ROScopter -->
+		<param name="robot_description" command="cat $(find apm)/urdf/apm.urdf" />
+  		<node pkg="roscopter" type="driver.py" name="roscopter" output="screen" args="--device=/dev/ttyUSB0 --baudrate=57600 --enable-rc-control=true" />
+  		<!--<node pkg="roscopter" type="imu_transform_publish.py" name="imu_transform_publish" />-->
+		<!-- APM -->
+		<node pkg="apm" type="apm_manager" name="apm_manager" respawn="true" output="screen" />
+		<node pkg="apm" type="apm_teleop" name="apm_teleop" respawn="true"  output="screen" />
+		<node pkg="apm" type="apm_hover_control" name="apm_hover_control" respawn="true"  output="screen" />
+		<node pkg="tf" type="static_transform_publisher" name="staic_broadcaster" args="0 0 0 0 0 0 mocap base_link 100" />
+		<!-- VISUALIZATION -->
+		<node pkg="rviz" type="rviz" name="rviz" args=" -d $(find apm)/rviz/apm_rviz.rviz" respawn="true" /> 
+	</group>
+</launch>
+
