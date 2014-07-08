@@ -93,7 +93,7 @@ ros::Publisher send_rc_pub;
 ros::Publisher old_rc_pub;
 
 //PID Parameters
-double K_yaw_P = 5, K_yaw_I = 1, K_yaw_D = 2;
+double K_yaw_P = 50, K_yaw_I = 1, K_yaw_D = 25;
 double K_x_P = 500, K_x_I = 5, K_x_D = 50;
 double K_y_P = 500, K_y_I = 5, K_y_D = 50;
 double K_z_P = 500, K_z_I = 5, K_z_D = 50;
@@ -141,7 +141,7 @@ void callback(apm::controlConfig &config, uint32_t level)
 
 void joyCallback(const sensor_msgs::Joy::ConstPtr& joy_msg)
 {
-	desired_alt = (joy_msg->axes[3] + 1) * 0.15;
+	desired_alt = (joy_msg->axes[3] + 1) * 0.5;
 }
 
 
@@ -172,14 +172,14 @@ void poseCallback(const geometry_msgs::Pose& pose_msg)
 		//Initalize old values
 		current_time = ros::Time::now();
 		old_time = ros::Time::now();
-		previous_error_yaw = 0;
-		total_error_yaw = 0;
-		previous_error_x = 0;
-		total_error_x = 0;
-		previous_error_y = 0;
-		total_error_y = 0;
-		previous_error_z = 0;
-		total_error_z  = 0;
+		previous_error_yaw = 0.0;
+		total_error_yaw = 0.0;
+		previous_error_x = 0.0;
+		total_error_x = 0.0;
+		previous_error_y = 0.0;
+		total_error_y = 0.0;
+		previous_error_z = 0.0;
+		total_error_z  = 0.0;
 		is_first = false;
 	}	 
 
@@ -206,7 +206,7 @@ void poseCallback(const geometry_msgs::Pose& pose_msg)
 		current_trans.y = pose_msg.position.y;
 		current_trans.z = pose_msg.position.z;
 
-		if (dt > 0.02)
+		if (dt > 0.02)  //Slow down to 50 Hz
 		{
 
 			//Compute yaw error and PID terms
@@ -214,9 +214,9 @@ void poseCallback(const geometry_msgs::Pose& pose_msg)
 			double p_term_yaw = K_yaw_P * error_yaw;
 			double i_term_yaw = K_yaw_I * (error_yaw + total_error_yaw);
 			double d_term_yaw = K_yaw_D * (error_yaw - previous_error_yaw)/dt;
-			if (i_term_yaw >= (RATE_MAX - RATE_MIN))
+			if (i_term_yaw >= ((RATE_MAX - RATE_MIN)/2))
 				i_term_yaw = (RATE_MAX - RATE_MIN)/2;
-			else if (i_term_yaw <= (RATE_MIN - RATE_MAX))
+			else if (i_term_yaw <= ((RATE_MIN - RATE_MAX)/2))
 				i_term_yaw = (RATE_MIN - RATE_MAX)/2;
 
 			//Compute Y error and PID terms
@@ -224,9 +224,9 @@ void poseCallback(const geometry_msgs::Pose& pose_msg)
 			double p_term_y = K_y_P * error_y;
 			double i_term_y = K_y_I * (error_y + total_error_y);
 			double d_term_y = K_y_D * (error_y - previous_error_y)/dt;
-			if (i_term_y >= (RATE_MAX - RATE_MIN))
+			if (i_term_y >= ((RATE_MAX - RATE_MIN)/2))
 				i_term_y = (RATE_MAX - RATE_MIN)/2;
-			else if (i_term_y <= (RATE_MIN - RATE_MAX))
+			else if (i_term_y <= ((RATE_MIN - RATE_MAX)/2))
 				i_term_y = (RATE_MIN - RATE_MAX)/2;
 
 			//Compute X error and PID terms
@@ -234,9 +234,9 @@ void poseCallback(const geometry_msgs::Pose& pose_msg)
 			double p_term_x = K_x_P * error_x;
 			double i_term_x = K_x_I * (error_x + total_error_x);
 			double d_term_x = K_x_D * (error_x - previous_error_x)/dt;
-			if (i_term_x >= (RATE_MAX - RATE_MIN))
+			if (i_term_x >= ((RATE_MAX - RATE_MIN)/2))
 				i_term_x = (RATE_MAX - RATE_MIN)/2;
-			else if (i_term_x <= (RATE_MIN - RATE_MAX))
+			else if (i_term_x <= ((RATE_MIN - RATE_MAX)/2))
 				i_term_x = (RATE_MIN - RATE_MAX)/2;
 
 			//Compute Z error and PID terms
@@ -245,13 +245,13 @@ void poseCallback(const geometry_msgs::Pose& pose_msg)
 			double i_term_z = K_z_I * (error_z + total_error_z);
 			double d_term_z = K_z_D * (error_z - previous_error_z)/dt;
 
-			if (i_term_z >= (THROTTLE_MAX-THROTTLE_MIN))
+			if (i_term_z >= (THROTTLE_MAX - THROTTLE_MIN))
 			{
 				i_term_z = THROTTLE_MAX - THROTTLE_MIN;
 			}
-			else if (i_term_z <= (THROTTLE_MIN -THROTTLE_MIN))
+			else if (i_term_z <= (THROTTLE_MIN - THROTTLE_MIN))
 			{
-				i_term_z = THROTTLE_MIN - THROTTLE_MIN;
+				i_term_z = THROTTLE_MIN - THROTTLE_MIN; //Aka ZERO
 			}				
 			
 			roscopter::RC send_rc_msg;
