@@ -103,7 +103,7 @@ private:
 	int arm_button_;
 	int disarm_button_;
 	int eStop_button_;
-	int low_battery_warn_;
+	int low_battery_warn_; //mV
 	geometry_msgs::PoseStamped old_pose_;
 	geometry_msgs::Vector3Stamped old_euler_;
 	sensor_msgs::Imu pub_imu_msg_;
@@ -212,9 +212,9 @@ public:
 	{
 		//Converting from NED to ENU
 		pub_imu_msg_.header = raw_imu_msg.header;
-		pub_imu_msg_.linear_acceleration.x =-raw_imu_msg.xacc / 1000.0 * 9.81; //m/s
-		pub_imu_msg_.linear_acceleration.y = raw_imu_msg.yacc / 1000.0 * 9.81; //m/s
-		pub_imu_msg_.linear_acceleration.z = raw_imu_msg.zacc / 1000.0 * 9.81; //m/s
+		pub_imu_msg_.linear_acceleration.x = raw_imu_msg.xacc / 1000.0 * 9.81; //m/s
+		pub_imu_msg_.linear_acceleration.y =-raw_imu_msg.yacc / 1000.0 * 9.81; //m/s
+		pub_imu_msg_.linear_acceleration.z =-raw_imu_msg.zacc / 1000.0 * 9.81; //m/s
 		pub_imu_msg_.angular_velocity.x = raw_imu_msg.xgyro / 1000.0;  //rad/s
 		pub_imu_msg_.angular_velocity.y =-raw_imu_msg.ygyro / 1000.0;  //rad/s
 		pub_imu_msg_.angular_velocity.z =-raw_imu_msg.zgyro / 1000.0;  //rad/s
