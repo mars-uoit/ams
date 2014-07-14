@@ -212,6 +212,7 @@ public:
 	{
 		//Converting from NED to ENU
 		pub_imu_msg_.header = raw_imu_msg.header;
+		pub_imu_msg_.header.frame_id = "imu";
 		pub_imu_msg_.linear_acceleration.x = raw_imu_msg.xacc / 1000.0 * 9.81; //m/s
 		pub_imu_msg_.linear_acceleration.y =-raw_imu_msg.yacc / 1000.0 * 9.81; //m/s
 		pub_imu_msg_.linear_acceleration.z =-raw_imu_msg.zacc / 1000.0 * 9.81; //m/s
@@ -222,7 +223,7 @@ public:
 		imu_pub_.publish(pub_imu_msg_);
 
 		sensor_msgs::MagneticField mag_msg;
-		mag_msg.magnetic_field.x = raw_imu_msg.ymag;
+		mag_msg.magnetic_field.x = raw_imu_msg.ymag; //Units are Guass be they are not needed in most cases. TODO Convert to Telas.
 		mag_msg.magnetic_field.y = raw_imu_msg.xmag;
 		mag_msg.magnetic_field.z =-raw_imu_msg.zmag;
 		mag_pub_.publish(mag_msg);
