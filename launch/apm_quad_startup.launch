@@ -1,7 +1,7 @@
 <launch>
 	<group ns ="apm">
 		<!-- DATA RECORDING -->
-		<node pkg="rosbag" type="record" name="record" args="record -o /home/balto/bagfiles/apm_data --all" />
+		<node pkg="rosbag" type="record" name="record" args="record -o ~/bagfiles/apm_data --all" />
 		<!-- MOCAP     -->
 	 	<node pkg="mocap_optitrack" 
 			type="mocap_node" 
@@ -13,16 +13,15 @@
 		</node>
 		<node respawn="true" pkg="joy" type="joy_node" name="joy" >
 			<param name="dev" type="string" value="/dev/input/js0" />
-			<param name="deadzone" value="0.2" />
+			<param name="deadzone" value="0.01" />
 			<param name="~autorepeat_rate" value="10" />
 		</node>
-		<!-- ROScopter -->
-		<param name="robot_description" command="cat $(find apm)/urdf/apm.urdf" />
 		<!-- APM -->
+		<param name="robot_description" command="cat $(find apm)/urdf/apm.urdf" />
 		<node pkg="apm" type="apm_manager" name="apm_manager" respawn="true" output="screen" />
 		<node pkg="apm" type="apm_teleop" name="apm_teleop" respawn="true"  output="screen" />
 		<node pkg="apm" type="apm_hover_control" name="apm_hover_control" respawn="true"  output="screen" />
-		<node pkg="tf" type="static_transform_publisher" name="staic_broadcaster" args="0 0 0 0 0 0 mocap base_link 100" />
+		<node pkg="tf" type="static_transform_publisher" name="mocap_to_base_link" args="0 0 0 0 0 0 mocap base_link 100" />
 		<!-- VISUALIZATION -->
 		<node pkg="rviz" type="rviz" name="rviz" args=" -d $(find apm)/rviz/apm_rviz.rviz" respawn="true" /> 
 	</group>
