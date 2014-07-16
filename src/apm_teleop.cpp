@@ -87,40 +87,40 @@ public:
 		yaw_max_(1600),
 		yaw_min_(1400),
 		throttle_axes_(3),
-		throttle_max_(1600),
+		throttle_max_(1700),
 		throttle_min_(1100)
 		{
 		//ROS params TODO finish all
 		nh_.param("roll_axes", roll_axes_, roll_axes_);
 		//Init everything
-		initSubscribers();
-		initPublishers();
+		init_subscribers();
+		init_publishers();
 		}
 
-	void initSubscribers()
+	void init_subscribers()
 	{
 		//Init Subs
-  		joy_sub_ = nh_.subscribe("joy", 10, &APMTeleop::joyCallback,this,ros::TransportHints().tcpNoDelay());
-  		apm_state_sub_ = nh_.subscribe("state", 10, &APMTeleop::stateCallback,this,ros::TransportHints().tcpNoDelay());
-		control_mode_sub_ = nh_.subscribe("control_mode", 10, &APMTeleop::controlModeCallback,this,ros::TransportHints().tcpNoDelay()); 
+  		joy_sub_ = nh_.subscribe("joy", 10, &APMTeleop::joy_callback,this,ros::TransportHints().tcpNoDelay());
+  		apm_state_sub_ = nh_.subscribe("state", 10, &APMTeleop::state_callback,this,ros::TransportHints().tcpNoDelay());
+		control_mode_sub_ = nh_.subscribe("control_mode", 10, &APMTeleop::control_mode_callback,this,ros::TransportHints().tcpNoDelay()); 
 	}
 
-	void initPublishers()
+	void init_publishers()
 	{
 		//Init Pub
 		send_rc_pub_ = nh_.advertise<roscopter::RC>("send_rc", 10);
 	}
 
-	void stateCallback(const roscopter::State state_msg)
+	void state_callback(const roscopter::StateConstPtr& state_msg)
 	{
 		//Double-check if armed on-board
-		if (state_msg.armed)
+		if (state_msg->armed)
 			is_armed_ = true;
-		else if (!state_msg.armed)
+		else if (!state_msg->armed)
 			is_armed_ = false;
 	}
 
-	void joyCallback(const sensor_msgs::Joy::ConstPtr& joy_msg)
+	void joy_callback(const sensor_msgs::JoyConstPtr& joy_msg)
 	{
 		//Send RC commands based on the joystick
 		if (teleop_enabled_)
@@ -134,9 +134,9 @@ public:
 		}
 	}
 
-	void controlModeCallback(const std_msgs::Int32 control_mode_msg)
+	void control_mode_callback(const std_msgs::Int32ConstPtr& control_mode_msg)
 	{
-		if (control_mode_msg.data == 1)
+		if (control_mode_msg->data == 1)
 			teleop_enabled_ = true;
 		else
 			teleop_enabled_ = false;

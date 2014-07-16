@@ -143,7 +143,7 @@ public:
 	void init_subscribers()
 	{
 		//Init Subs
-		joy_sub_ = nh_.subscribe("joy", 1, &APMManger::joy_callback,this,ros::TransportHints().tcpNoDelay());
+		joy_sub_ = nh_.subscribe("joy", 1, &APMManger::joy_callback,this,ros::TransportHints().unreliable().reliable().tcpNoDelay());
 		state_sub_ = nh_.subscribe("state", 1, &APMManger::state_callback,this,ros::TransportHints().tcpNoDelay());
 		status_sub_ = nh_.subscribe("status", 1, &APMManger::status_callback,this,ros::TransportHints().tcpNoDelay());
 		if(mocap_used_)
@@ -174,9 +174,9 @@ public:
 		}
 	}
 
-	void state_callback(const roscopter::State state_msg)
+	void state_callback(const roscopter::StateConstPtr& state_msg)
 	{
-		if (state_msg.armed)
+		if (state_msg->armed)
 		{
 			if (is_armed_ == false)
 			{
@@ -185,7 +185,7 @@ public:
 			is_armed_ = true;
 		}
 		
-		else if (!state_msg.armed)
+		else if (!state_msg->armed)
 		{
 			if (is_armed_ == true)
 			{
@@ -195,37 +195,37 @@ public:
 		}
 	}
 
-	void status_callback(const roscopter::Status status_msg)
+	void status_callback(const roscopter::StatusConstPtr& status_msg)
 	{
-		if (status_msg.battery_voltage < low_battery_warn_)
+		if (status_msg->battery_voltage < low_battery_warn_)
 		{
-				ROS_WARN("Battery getting low! %d V", status_msg.battery_voltage);
+				ROS_WARN("Battery getting low! %d V", status_msg->battery_voltage);
 		}
 	}
 
-	void attitude_callback(const roscopter::Attitude attitude_msg)
+	void attitude_callback(const roscopter::AttitudeConstPtr& attitude_msg)
 	{
-		attitude_msg_ = attitude_msg;
+		attitude_msg_ = *attitude_msg;
 	}
 
-	void raw_imu_callback(const roscopter::Mavlink_RAW_IMU raw_imu_msg)
+	void raw_imu_callback(const roscopter::Mavlink_RAW_IMUConstPtr& raw_imu_msg)
 	{
 		//Converting from NED to ENU
-		pub_imu_msg_.header = raw_imu_msg.header;
+		pub_imu_msg_.header = raw_imu_msg->header;
 		pub_imu_msg_.header.frame_id = "imu";
-		pub_imu_msg_.linear_acceleration.x = raw_imu_msg.xacc / 1000.0 * 9.81; //m/s
-		pub_imu_msg_.linear_acceleration.y =-raw_imu_msg.yacc / 1000.0 * 9.81; //m/s
-		pub_imu_msg_.linear_acceleration.z =-raw_imu_msg.zacc / 1000.0 * 9.81; //m/s
-		pub_imu_msg_.angular_velocity.x = raw_imu_msg.xgyro / 1000.0;  //rad/s
-		pub_imu_msg_.angular_velocity.y =-raw_imu_msg.ygyro / 1000.0;  //rad/s
-		pub_imu_msg_.angular_velocity.z =-raw_imu_msg.zgyro / 1000.0;  //rad/s
+		pub_imu_msg_.linear_acceleration.x = raw_imu_msg->xacc / 1000.0 * 9.81; //m/s
+		pub_imu_msg_.linear_acceleration.y =-raw_imu_msg->yacc / 1000.0 * 9.81; //m/s
+		pub_imu_msg_.linear_acceleration.z =-raw_imu_msg->zacc / 1000.0 * 9.81; //m/s
+		pub_imu_msg_.angular_velocity.x = raw_imu_msg->xgyro / 1000.0;  //rad/s
+		pub_imu_msg_.angular_velocity.y =-raw_imu_msg->ygyro / 1000.0;  //rad/s
+		pub_imu_msg_.angular_velocity.z =-raw_imu_msg->zgyro / 1000.0;  //rad/s
 		pub_imu_msg_.orientation = tf::createQuaternionMsgFromRollPitchYaw(attitude_msg_.roll, -attitude_msg_.pitch, -attitude_msg_.yaw);
 		imu_pub_.publish(pub_imu_msg_);
 
 		sensor_msgs::MagneticField mag_msg;
-		mag_msg.magnetic_field.x = raw_imu_msg.ymag; //Units are Guass be they are not needed in most cases. TODO Convert to Telas.
-		mag_msg.magnetic_field.y = raw_imu_msg.xmag;
-		mag_msg.magnetic_field.z =-raw_imu_msg.zmag;
+		mag_msg.magnetic_field.x = raw_imu_msg->ymag; //Units are Guass be they are not needed in most cases. TODO Convert to Telas.
+		mag_msg.magnetic_field.y = raw_imu_msg->xmag;
+		mag_msg.magnetic_field.z =-raw_imu_msg->zmag;
 		mag_pub_.publish(mag_msg);
 				
 		static tf::TransformBroadcaster br;
@@ -237,13 +237,13 @@ public:
 	}
 
 
-	void mocap_pose_callback(const geometry_msgs::Pose& pose_msg)
+	void mocap_pose_callback(const geometry_msgs::PoseConstPtr& pose_msg)
 	{
 		ros::Time current_time = ros::Time::now();
 		double time_difference = current_time.toSec() - old_pose_.header.stamp.toSec();
 
 		tf::Quaternion quat;
-		tf::quaternionMsgToTF(pose_msg.orientation, quat);
+		tf::quaternionMsgToTF(pose_msg->orientation, quat);
 		double roll, pitch, yaw;
 		tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
 		geometry_msgs::Vector3Stamped euler_msg;
@@ -254,9 +254,9 @@ public:
 		euler_msg.vector.z = yaw;
 		euler_pub_.publish(euler_msg);
 
-		double vx = (pose_msg.position.x - old_pose_.pose.position.x)/time_difference;
-		double vy = (pose_msg.position.y - old_pose_.pose.position.y)/time_difference;
-		double vz = (pose_msg.position.z - old_pose_.pose.position.z)/time_difference;
+		double vx = (pose_msg->position.x - old_pose_.pose.position.x)/time_difference;
+		double vy = (pose_msg->position.y - old_pose_.pose.position.y)/time_difference;
+		double vz = (pose_msg->position.z - old_pose_.pose.position.z)/time_difference;
 		double vr = (euler_msg.vector.x - old_euler_.vector.x)/time_difference;
 		double vp = (euler_msg.vector.y - old_euler_.vector.y)/time_difference;
 		double vya = (euler_msg.vector.z - old_euler_.vector.z)/time_difference;
@@ -273,9 +273,9 @@ public:
 	
 		nav_msgs::Odometry odom_msg;
 		odom_msg.header.stamp = current_time;
-		odom_msg.header.frame_id = "world";
+		odom_msg.header.frame_id = "odom";
 		odom_msg.child_frame_id = "mocap";
-		odom_msg.pose.pose = pose_msg;
+		odom_msg.pose.pose = *pose_msg;
 		odom_msg.pose.covariance[0]  = 0.01;  //x
 		odom_msg.pose.covariance[7]  = 0.01;  //y
 		odom_msg.pose.covariance[14] = 0.01;  //z
@@ -293,8 +293,8 @@ public:
 		
 
 		old_pose_.header.stamp = current_time; 
-		old_pose_.pose.position = pose_msg.position;
-		old_pose_.pose.orientation = pose_msg.orientation;
+		old_pose_.pose.position = pose_msg->position;
+		old_pose_.pose.orientation = pose_msg->orientation;
 		old_euler_ = euler_msg; 
 	}
 

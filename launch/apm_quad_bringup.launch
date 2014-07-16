@@ -17,7 +17,7 @@
 			<param name="~autorepeat_rate" value="10" />
 		</node>
 		<!-- ROScopter -->
-  		<node pkg="roscopter" type="driver.py" name="roscopter" output="screen" args="--device=/dev/ttyUSB0 --baudrate=57600 --enable-rc-control=true" />
+  		<node pkg="roscopter" type="driver.py" name="roscopter" output="screen" args="--device=/dev/ttyACM0 --baudrate=115200 --enable-rc-control=true" />
 		<!-- APM -->
 		<param name="robot_description" command="cat $(find apm)/urdf/apm.urdf" />
 		<node pkg="apm" type="apm_manager" name="apm_manager" respawn="true" output="screen" />
