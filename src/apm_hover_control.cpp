@@ -36,16 +36,15 @@
 #include <ros/ros.h>
 #include <std_msgs/Int32.h>
 #include <sensor_msgs/Joy.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Pose2D.h>
+#include <geometry_msgs/Vector3.h>
+#include <geometry_msgs/Quaternion.h>
+#include <tf/transform_listener.h>
+#include <tf/transform_datatypes.h>
 #include <roscopter/RC.h>
 #include <dynamic_reconfigure/server.h>
 #include <apm/controlConfig.h>
-#include <geometry_msgs/Pose.h>
-#include <geometry_msgs/Pose2D.h>
-#include <tf/transform_listener.h>
-#include <tf/transform_datatypes.h>
-#include <geometry_msgs/Vector3.h>
-#include <geometry_msgs/Quaternion.h>
-#include <std_msgs/Float64.h>
 
 #define RATE_MAX 1650
 #define RATE_MID 1500
@@ -74,19 +73,19 @@ geometry_msgs::Pose initial_pose;  //initial pose
 geometry_msgs::PoseStamped desired_pose;
 geometry_msgs::Vector3 initial_trans;  //initial_pose translation
 geometry_msgs::Vector3 initial_rot;  //initial_pose rotation
-float desired_alt = 0;
+float desired_alt = 0.0;
 ros::Time old_time;
 ros::Time current_time;
 roscopter::RC old_send_rc_msg;
 
-//Subscribers
+// Subscribers
 ros::Subscriber pose_sub;
 ros::Subscriber status_sub;
 ros::Subscriber joy_sub;
 ros::Subscriber	control_mode_sub;
 ros::Subscriber	send_rc_sub;
 ros::Subscriber	old_send_rc_sub;
-//Publishers
+// Publishers
 ros::Publisher euler_desired_pub;
 ros::Publisher alt_desired_pub;
 ros::Publisher pose_desired_pub;
@@ -94,13 +93,13 @@ ros::Publisher ctrl_pub;
 ros::Publisher send_rc_pub;
 ros::Publisher old_rc_pub;
 
-//PID Parameters
+// PID Parameters
 double K_yaw_P = 5, K_yaw_I = 0, K_yaw_D = 0;
 double K_x_P = 100, K_x_I = 0, K_x_D = 0;
 double K_y_P = 100, K_y_I = 0, K_y_D = 0;
 double K_z_P = 400, K_z_I = 0, K_z_D = 0;
 
-//PID Variables
+// PID Variables
 double error_yaw, previous_error_yaw, total_error_yaw;
 double error_x, previous_error_x, total_error_x;
 double error_y, previous_error_y, total_error_y;
@@ -146,6 +145,21 @@ void joy_callback(const sensor_msgs::JoyConstPtr& joy_msg)
 	desired_alt = (joy_msg->axes[3] + 1) * 0.5;
 }
 
+void initROSParams()
+{
+	ros::param::param<double>("~K_x_P", K_x_P, K_x_P);
+	ros::param::param<double>("~K_x_I", K_x_I, K_x_I);
+	ros::param::param<double>("~K_x_D", K_x_D, K_x_D);
+	ros::param::param<double>("K_y_P", K_y_P, K_y_P);
+	ros::param::param<double>("K_y_I", K_y_D, K_y_I);
+	ros::param::param<double>("K_y_D", K_y_D, K_y_D);
+	ros::param::param<double>("K_z_P", K_z_P, K_z_P);
+	ros::param::param<double>("K_z_I", K_z_D, K_z_I);
+	ros::param::param<double>("K_z_D", K_z_D, K_z_D);
+	ros::param::param<double>("K_yaw_P", K_yaw_P, K_yaw_P);
+	ros::param::param<double>("K_yaw_I", K_yaw_D, K_yaw_I);
+	ros::param::param<double>("K_yaw_D", K_yaw_D, K_yaw_D);
+}
 
 void control_mode_callback(const std_msgs::Int32ConstPtr& control_mode_msg)
 {
@@ -159,6 +173,7 @@ void pose_callback(const geometry_msgs::PoseConstPtr& pose_msg)
 {
 	if(is_first && is_enabled)
 	{
+        // Store the first pose as the desired hovering pose.
 		initial_pose = *pose_msg;
 		tf::Quaternion quat;
 		tf::quaternionMsgToTF(pose_msg->orientation, quat);
@@ -170,7 +185,8 @@ void pose_callback(const geometry_msgs::PoseConstPtr& pose_msg)
 		initial_trans.x = (pose_msg->position.x * cos(yaw)) - (pose_msg->position.y * sin(yaw)); //initial trans in robot frame from odom
 		initial_trans.y = (pose_msg->position.x * sin(yaw)) + (pose_msg->position.y * cos(yaw));
 		initial_trans.z = pose_msg->position.z;
-		ROS_INFO("Hover starting Pose: X=%f,Y=%f,Z=%f Roll=%f Pitch=%f Yaw=%f", initial_trans.x, initial_trans.y, initial_trans.z,initial_rot.x, initial_rot.y, initial_rot.z);
+		ROS_INFO("Hover starting");
+		ROS_INFO("Pose: X=%f,Y=%f,Z=%f Yaw=%f", initial_trans.x, initial_trans.y, initial_trans.z, initial_rot.z);
 		//Initalize old values
 		current_time = ros::Time::now();
 		old_time = ros::Time::now();
@@ -207,6 +223,7 @@ void pose_callback(const geometry_msgs::PoseConstPtr& pose_msg)
 		desired_trans.y = desired_pose.pose.position.y;
 		desired_trans.z = desired_alt + initial_trans.z;
 		alt_desired_pub.publish(desired_trans);
+        	// Computing the initial trans in the robot's frame
 		initial_trans.x = (desired_pose.pose.position.x * cos(yaw)) - (desired_pose.pose.position.y * sin(yaw)); 
 		initial_trans.y = (desired_pose.pose.position.x * sin(yaw)) + (desired_pose.pose.position.y * cos(yaw));
 
@@ -217,10 +234,11 @@ void pose_callback(const geometry_msgs::PoseConstPtr& pose_msg)
 		desired_pose.pose.position.z = desired_trans.z;
 		pose_desired_pub.publish(desired_pose);
 
-		if (dt > 0.02)  //Slow down to 50 Hz
+        	if (dt > 0.02)  // Slow down to 50 Hz.  Maybe make a parameter.
 		{
 
-			//Compute yaw error and PID terms
+            		// Compute yaw error and PID terms.
+            		// A lower value causes the quadrotor to rotate CCW relative to its own frame
 			error_yaw = (initial_rot.z - current_rot.z);
 			double p_term_yaw = K_yaw_P * error_yaw;
 			double i_term_yaw = K_yaw_I * (error_yaw + total_error_yaw);
@@ -234,7 +252,8 @@ void pose_callback(const geometry_msgs::PoseConstPtr& pose_msg)
 				i_term_yaw = (RATE_MIN - RATE_MAX)/2;
 			}
 
-			//Compute Y error and PID terms
+            		// Compute Y error and PID terms
+            		// A lower value causes the quadrotor to roll left
 			error_y = -(initial_trans.y - current_trans.y);
 			double p_term_y = K_y_P * error_y;
 			double i_term_y = K_y_I * (error_y + total_error_y);
@@ -248,7 +267,8 @@ void pose_callback(const geometry_msgs::PoseConstPtr& pose_msg)
 				i_term_y = (RATE_MIN - RATE_MAX)/2;
 			}
 
-			//Compute X error and PID terms
+            		// Compute X error and PID terms
+            		// A lower value causes the quadrotor to pitch forward
 			error_x = -(initial_trans.x - current_trans.x);
 			double p_term_x = K_x_P * error_x;
 			double i_term_x = K_x_I * (error_x + total_error_x);
@@ -262,7 +282,8 @@ void pose_callback(const geometry_msgs::PoseConstPtr& pose_msg)
 				i_term_x = (RATE_MIN - RATE_MAX)/2;
 			}
 
-			//Compute Z error and PID terms
+            		// Compute Z error and PID terms
+            		// A higher value causes the quadrotor to gain altitude
 			error_z = (initial_trans.z + desired_alt - current_trans.z);
 			double p_term_z = K_z_P * error_z;
 			double i_term_z = K_z_I * (error_z + total_error_z);
@@ -304,15 +325,15 @@ int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "apm_hover_control");
 	ros::NodeHandle n;
-
+	initROSParams();
 	euler_desired_pub = n.advertise<geometry_msgs::Vector3>("mocap/euler_desired", 1);
 	alt_desired_pub = n.advertise<geometry_msgs::Vector3>("mocap/alt_desired", 1);
 	pose_desired_pub = n.advertise<geometry_msgs::PoseStamped>("mocap/pose_desired", 1);
 	send_rc_pub = n.advertise<roscopter::RC>("send_rc", 1);
 
-	pose_sub = n.subscribe("mocap/pose", 1, pose_callback);
-	joy_sub = n.subscribe("joy", 1, joy_callback);
-	control_mode_sub = n.subscribe("control_mode",1, control_mode_callback);
+    	pose_sub = n.subscribe("mocap/pose", 1, pose_callback);
+    	joy_sub = n.subscribe("joy", 1, joy_callback);
+    	control_mode_sub = n.subscribe("control_mode",1, control_mode_callback);
 
 	dynamic_reconfigure::Server<apm::controlConfig> server;
 	dynamic_reconfigure::Server<apm::controlConfig>::CallbackType f;

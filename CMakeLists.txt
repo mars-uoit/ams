@@ -4,7 +4,7 @@ project(apm)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs sensor_msgs tf dynamic_reconfigure roscopter message_generation)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs geometry_msgs sensor_msgs tf dynamic_reconfigure roscopter roslaunch roslint)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -61,14 +61,14 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs sens
 # )
 
 ## Generate added messages and services with any dependencies listed here
- generate_messages(
-  DEPENDENCIES
-  std_msgs
-  roscopter
- )
+# generate_messages(
+#  DEPENDENCIES
+#  std_msgs
+#  roscopter
+# )
 
  generate_dynamic_reconfigure_options(
-  cfg/control.cfg
+ cfg/control.cfg
  )
 
 ###################################
@@ -81,9 +81,9 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs sens
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-   INCLUDE_DIRS include
+#   INCLUDE_DIRS include
 #  LIBRARIES apm
-  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime tf dynamic_reconfigure roscopter
+  CATKIN_DEPENDS roscpp std_msgs tf dynamic_reconfigure roscopter sensor_msgs geometry_msgs
 #  DEPENDS system_lib
 )
 
@@ -105,22 +105,20 @@ include_directories(include
 
 ## Declare a cpp executable
 # add_executable(apm_node src/apm_node.cpp)
-add_executable(apm_manager src/apm_manager.cpp)
-add_executable(apm_teleop src/apm_teleop.cpp)
-add_executable(apm_hover_control src/apm_hover_control.cpp)
+add_executable(${PROJECT_NAME}_manager src/${PROJECT_NAME}_manager.cpp)
+add_executable(${PROJECT_NAME}_teleop src/${PROJECT_NAME}_teleop.cpp)
+add_executable(${PROJECT_NAME}_hover_control src/${PROJECT_NAME}_hover_control.cpp)
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generate
 # add_dependencies(apm_node apm_generate_messages_cpp)d before nodes
-add_dependencies(apm_hover_control roscopter_generate_messages_cpp)
-add_dependencies(apm_teleop roscopter_generate_messages_cpp)
-add_dependencies(apm_hover_control ${PROJECT_NAME}_gencfg) 
+
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(apm_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(apm_manager ${catkin_LIBRARIES})
-target_link_libraries(apm_teleop ${catkin_LIBRARIES})
-target_link_libraries(apm_hover_control ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_manager ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_teleop ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_hover_control ${catkin_LIBRARIES})
 #############
 ## Install ##
 #############
@@ -137,7 +135,7 @@ target_link_libraries(apm_hover_control ${catkin_LIBRARIES})
 
 ## Mark executables and/or libraries for installation
  install(TARGETS 
-   apm_manager apm_teleop apm_hover_control
+   ${PROJECT_NAME}_manager ${PROJECT_NAME}_teleop ${PROJECT_NAME}_hover_control
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -152,14 +150,8 @@ target_link_libraries(apm_hover_control ${catkin_LIBRARIES})
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-install(FILES
-   launch/apm_quad_bringup.launch
-   launch/apm_quad_mocap_tune.launch
-   urdf/apm_base.stl
-   urdf/apm.urdf
-   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-   )
-
+install(DIRECTORY launch urdf
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}) 
 #############
 ## Testing ##
 #############
@@ -172,3 +164,13 @@ install(FILES
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+file(GLOB ${PROJECT_NAME}_LINT_SRCS
+  src/*.cpp)
+roslint_cpp(${LINT_SRCS})
+roslint_add_test()
+
+roslaunch_add_file_check(launch/apm_quad_bringup.launch)
+roslaunch_add_file_check(launch/apm_quad_startup.launch)
+roslaunch_add_file_check(launch/apm_quad_mocap_tune.launch)
+

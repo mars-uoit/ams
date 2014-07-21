@@ -111,7 +111,7 @@ private:
 
 public:
 	APMManger() :
-		//Members default values
+		// Members default values
 		gps_used_(false),
 		is_armed_(false),
 		imu_used_(true),
@@ -121,14 +121,14 @@ public:
 		disarm_button_(3),
 		low_battery_warn_(1150)
 		{
-			//ROS params
+			// ROS params
 			nh_.param("eStop_button", eStop_button_, eStop_button_);
 			nh_.param("arm_button", arm_button_, arm_button_);
 			nh_.param("disarm_button", disarm_button_, disarm_button_);
 			nh_.param("gps_used_", gps_used_, gps_used_);
 			nh_.param("mocap_used_", mocap_used_, mocap_used_);
 			nh_.param("low_battery_warn", low_battery_warn_, low_battery_warn_);
-			//Init everything
+			// Init everything
 			init_services();
 			init_subscribers();
 			init_publishers();
@@ -144,16 +144,16 @@ public:
 	{
 		//Init Subs
 		joy_sub_ = nh_.subscribe("joy", 1, &APMManger::joy_callback,this,ros::TransportHints().unreliable().reliable().tcpNoDelay());
-		state_sub_ = nh_.subscribe("state", 1, &APMManger::state_callback,this,ros::TransportHints().tcpNoDelay());
-		status_sub_ = nh_.subscribe("status", 1, &APMManger::status_callback,this,ros::TransportHints().tcpNoDelay());
+        	state_sub_ = nh_.subscribe("state", 1, &APMManger::state_callback,this,ros::TransportHints().unreliable().reliable().tcpNoDelay());
+        	status_sub_ = nh_.subscribe("status", 1, &APMManger::status_callback,this,ros::TransportHints().unreliable().reliable().tcpNoDelay());
 		if(mocap_used_)
 		{
-			mocap_sub_ =  nh_.subscribe("mocap/pose", 1, &APMManger::mocap_pose_callback,this,ros::TransportHints().tcpNoDelay());
+            		mocap_sub_ =  nh_.subscribe("mocap/pose", 1, &APMManger::mocap_pose_callback,this,ros::TransportHints().unreliable().reliable().tcpNoDelay());;
 		}
 		if(imu_used_)
 		{
-			raw_attitude_sub_ = nh_.subscribe("attitude", 1, &APMManger::attitude_callback,this,ros::TransportHints().tcpNoDelay());
-			raw_imu_sub_ = nh_.subscribe("raw_imu", 1, &APMManger::raw_imu_callback,this,ros::TransportHints().tcpNoDelay());
+            		raw_attitude_sub_ = nh_.subscribe("attitude", 1, &APMManger::attitude_callback,this,ros::TransportHints().unreliable().reliable().tcpNoDelay());
+            		raw_imu_sub_ = nh_.subscribe("raw_imu", 1, &APMManger::raw_imu_callback,this,ros::TransportHints().unreliable().reliable().tcpNoDelay());
 		}
 	}
 
