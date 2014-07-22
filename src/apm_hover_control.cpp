@@ -52,27 +52,29 @@
 
 #define THROTTLE_MAX 1800
 #define THROTTLE_MIN 1400
-enum Modes {
-	CONTROL_DISABLED = 0,
-	TELEOP = 1,
-	HOVER_CONTROL = 2
+enum Modes
+{
+  CONTROL_DISABLED = 0,
+  TELEOP = 1,
+  HOVER_CONTROL = 2
 };
 
-enum Channels {
-	ROLL,
-	PITCH,
-	THROTTLE,
-	YAW
+enum Channels
+{
+  ROLL,
+  PITCH,
+  THROTTLE,
+  YAW
 };
 
 
 bool is_first = true;
 bool is_enabled = false;
 
-geometry_msgs::Pose initial_pose;  //initial pose
+geometry_msgs::Pose initial_pose;  // initial pose
 geometry_msgs::PoseStamped desired_pose;
-geometry_msgs::Vector3 initial_trans;  //initial_pose translation
-geometry_msgs::Vector3 initial_rot;  //initial_pose rotation
+geometry_msgs::Vector3 initial_trans;  //  initial_pose translation
+geometry_msgs::Vector3 initial_rot;  // initial_pose rotation
 float desired_alt = 0.0;
 ros::Time old_time;
 ros::Time current_time;
@@ -82,9 +84,9 @@ roscopter::RC old_send_rc_msg;
 ros::Subscriber pose_sub;
 ros::Subscriber status_sub;
 ros::Subscriber joy_sub;
-ros::Subscriber	control_mode_sub;
-ros::Subscriber	send_rc_sub;
-ros::Subscriber	old_send_rc_sub;
+ros::Subscriber control_mode_sub;
+ros::Subscriber send_rc_sub;
+ros::Subscriber old_send_rc_sub;
 // Publishers
 ros::Publisher euler_desired_pub;
 ros::Publisher alt_desired_pub;
@@ -107,239 +109,239 @@ double error_z, previous_error_z, total_error_z;
 
 int throttle_bound(int rc)
 {
-	if(rc >= THROTTLE_MAX) // TODO Make this a ROS param
-		return THROTTLE_MAX;
-	else if(rc <= THROTTLE_MIN)
-		return THROTTLE_MIN;
-	else
-		return rc;
+  if (rc >= THROTTLE_MAX)  // TODO(tonybaltovski) Make this a ROS param
+    return THROTTLE_MAX;
+  else if (rc <= THROTTLE_MIN)
+    return THROTTLE_MIN;
+  else
+    return rc;
 }
 int rate_bound(int rc)
 {
-	if(rc >= RATE_MAX)
-		return RATE_MAX;
-	else if(rc <= RATE_MIN)
-		return RATE_MIN;
-	else
-		return rc;
+  if (rc >= RATE_MAX)
+    return RATE_MAX;
+  else if (rc <= RATE_MIN)
+    return RATE_MIN;
+  else
+    return rc;
 }
 
 void gains_callback(apm::controlConfig &config, uint32_t level)
 {
-	K_x_P = config.K_x_P;
-	K_x_I = config.K_x_I;
-	K_x_D = config.K_x_D;
-	K_y_P = config.K_y_P;
-	K_y_I = config.K_y_I;
-	K_y_D = config.K_y_D;
-	K_z_P = config.K_z_P;
-	K_z_I = config.K_z_I;
-	K_z_D = config.K_z_D;
-	K_yaw_P = config.K_yaw_P;
-	K_yaw_I = config.K_yaw_I;
-	K_yaw_D = config.K_yaw_D;
+  K_x_P = config.K_x_P;
+  K_x_I = config.K_x_I;
+  K_x_D = config.K_x_D;
+  K_y_P = config.K_y_P;
+  K_y_I = config.K_y_I;
+  K_y_D = config.K_y_D;
+  K_z_P = config.K_z_P;
+  K_z_I = config.K_z_I;
+  K_z_D = config.K_z_D;
+  K_yaw_P = config.K_yaw_P;
+  K_yaw_I = config.K_yaw_I;
+  K_yaw_D = config.K_yaw_D;
 }
 
 void joy_callback(const sensor_msgs::JoyConstPtr& joy_msg)
 {
-	desired_alt = (joy_msg->axes[3] + 1) * 0.5;
+  desired_alt = (joy_msg->axes[3] + 1) * 0.5;
 }
 
 void initROSParams()
 {
-	ros::param::param<double>("~K_x_P", K_x_P, K_x_P);
-	ros::param::param<double>("~K_x_I", K_x_I, K_x_I);
-	ros::param::param<double>("~K_x_D", K_x_D, K_x_D);
-	ros::param::param<double>("K_y_P", K_y_P, K_y_P);
-	ros::param::param<double>("K_y_I", K_y_D, K_y_I);
-	ros::param::param<double>("K_y_D", K_y_D, K_y_D);
-	ros::param::param<double>("K_z_P", K_z_P, K_z_P);
-	ros::param::param<double>("K_z_I", K_z_D, K_z_I);
-	ros::param::param<double>("K_z_D", K_z_D, K_z_D);
-	ros::param::param<double>("K_yaw_P", K_yaw_P, K_yaw_P);
-	ros::param::param<double>("K_yaw_I", K_yaw_D, K_yaw_I);
-	ros::param::param<double>("K_yaw_D", K_yaw_D, K_yaw_D);
+  ros::param::param<double>("~K_x_P", K_x_P, K_x_P);
+  ros::param::param<double>("~K_x_I", K_x_I, K_x_I);
+  ros::param::param<double>("~K_x_D", K_x_D, K_x_D);
+  ros::param::param<double>("K_y_P", K_y_P, K_y_P);
+  ros::param::param<double>("K_y_I", K_y_D, K_y_I);
+  ros::param::param<double>("K_y_D", K_y_D, K_y_D);
+  ros::param::param<double>("K_z_P", K_z_P, K_z_P);
+  ros::param::param<double>("K_z_I", K_z_D, K_z_I);
+  ros::param::param<double>("K_z_D", K_z_D, K_z_D);
+  ros::param::param<double>("K_yaw_P", K_yaw_P, K_yaw_P);
+  ros::param::param<double>("K_yaw_I", K_yaw_D, K_yaw_I);
+  ros::param::param<double>("K_yaw_D", K_yaw_D, K_yaw_D);
 }
 
 void control_mode_callback(const std_msgs::Int32ConstPtr& control_mode_msg)
 {
-	if(control_mode_msg->data == HOVER_CONTROL)
-		is_enabled = true;
-	else
-		is_enabled = false;
+  if (control_mode_msg->data == HOVER_CONTROL)
+    is_enabled = true;
+  else
+    is_enabled = false;
 }
 
 void pose_callback(const geometry_msgs::PoseConstPtr& pose_msg)
 {
-	if(is_first && is_enabled)
-	{
-        // Store the first pose as the desired hovering pose.
-		initial_pose = *pose_msg;
-		tf::Quaternion quat;
-		tf::quaternionMsgToTF(pose_msg->orientation, quat);
-		double roll, pitch, yaw;
-		tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-		initial_rot.x = roll;
-		initial_rot.y = pitch;
-		initial_rot.z = yaw;
-		initial_trans.x = (pose_msg->position.x * cos(yaw)) - (pose_msg->position.y * sin(yaw)); //initial trans in robot frame from odom
-		initial_trans.y = (pose_msg->position.x * sin(yaw)) + (pose_msg->position.y * cos(yaw));
-		initial_trans.z = pose_msg->position.z;
-		ROS_INFO("Hover starting");
-		ROS_INFO("Pose: X=%f,Y=%f,Z=%f Yaw=%f", initial_trans.x, initial_trans.y, initial_trans.z, initial_rot.z);
-		//Initalize old values
-		current_time = ros::Time::now();
-		old_time = ros::Time::now();
-		previous_error_yaw = 0.0;
-		total_error_yaw = 0.0;
-		previous_error_x = 0.0;
-		total_error_x = 0.0;
-		previous_error_y = 0.0;
-		total_error_y = 0.0;
-		previous_error_z = 0.0;
-		total_error_z  = 0.0;
-		is_first = false;
-		//For rviz visual
-		desired_pose.pose = *pose_msg;
-		desired_pose.header.frame_id = "odom";
-	}
+  if (is_first && is_enabled)
+  {
+    // Store the first pose as the desired hovering pose.
+    initial_pose = *pose_msg;
+    tf::Quaternion quat;
+    tf::quaternionMsgToTF(pose_msg->orientation, quat);
+    double roll, pitch, yaw;
+    tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+    initial_rot.x = roll;
+    initial_rot.y = pitch;
+    initial_rot.z = yaw;
+    // Initial trans in robot frame from odom
+    initial_trans.x = (pose_msg->position.x * cos(yaw)) - (pose_msg->position.y * sin(yaw));
+    initial_trans.y = (pose_msg->position.x * sin(yaw)) + (pose_msg->position.y * cos(yaw));
+    initial_trans.z = pose_msg->position.z;
+    ROS_INFO("Hover starting");
+    ROS_INFO("Pose: X=%f,Y=%f,Z=%f Yaw=%f", initial_trans.x, initial_trans.y, initial_trans.z, initial_rot.z);
+    // Initalize old values
+    current_time = ros::Time::now();
+    old_time = ros::Time::now();
+    previous_error_yaw = 0.0;
+    total_error_yaw = 0.0;
+    previous_error_x = 0.0;
+    total_error_x = 0.0;
+    previous_error_y = 0.0;
+    total_error_y = 0.0;
+    previous_error_z = 0.0;
+    total_error_z  = 0.0;
+    is_first = false;
+    // For rviz visual
+    desired_pose.pose = *pose_msg;
+    desired_pose.header.frame_id = "odom";
+  }
 
-	else if(is_enabled)
-	{
-		current_time = ros::Time::now();
-		double dt = current_time.toSec() - old_time.toSec();
-		geometry_msgs::Vector3 current_rot;
-		geometry_msgs::Vector3 current_trans;
-		tf::Quaternion quat;
-		tf::quaternionMsgToTF(pose_msg->orientation, quat);
-		double roll, pitch, yaw;
-		tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-		current_rot.x = roll;
-		current_rot.y = pitch;
-		current_rot.z = yaw;
-		euler_desired_pub.publish(initial_rot);
-		geometry_msgs::Vector3 desired_trans;
-		desired_trans.x = desired_pose.pose.position.x;
-		desired_trans.y = desired_pose.pose.position.y;
-		desired_trans.z = desired_alt + initial_trans.z;
-		alt_desired_pub.publish(desired_trans);
-        	// Computing the initial trans in the robot's frame
-		initial_trans.x = (desired_pose.pose.position.x * cos(yaw)) - (desired_pose.pose.position.y * sin(yaw)); 
-		initial_trans.y = (desired_pose.pose.position.x * sin(yaw)) + (desired_pose.pose.position.y * cos(yaw));
+  else if (is_enabled)
+  {
+    current_time = ros::Time::now();
+    double dt = current_time.toSec() - old_time.toSec();
+    geometry_msgs::Vector3 current_rot;
+    geometry_msgs::Vector3 current_trans;
+    tf::Quaternion quat;
+    tf::quaternionMsgToTF(pose_msg->orientation, quat);
+    double roll, pitch, yaw;
+    tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+    current_rot.x = roll;
+    current_rot.y = pitch;
+    current_rot.z = yaw;
+    euler_desired_pub.publish(initial_rot);
+    geometry_msgs::Vector3 desired_trans;
+    desired_trans.x = desired_pose.pose.position.x;
+    desired_trans.y = desired_pose.pose.position.y;
+    desired_trans.z = desired_alt + initial_trans.z;
+    alt_desired_pub.publish(desired_trans);
+    // Computing the initial trans in the robot's frame
+    initial_trans.x = (desired_pose.pose.position.x * cos(yaw)) - (desired_pose.pose.position.y * sin(yaw));
+    initial_trans.y = (desired_pose.pose.position.x * sin(yaw)) + (desired_pose.pose.position.y * cos(yaw));
 
-		current_trans.x = (pose_msg->position.x * cos(yaw)) - (pose_msg->position.y * sin(yaw));
-		current_trans.y = (pose_msg->position.x * sin(yaw)) + (pose_msg->position.y * cos(yaw));
-		current_trans.z = pose_msg->position.z;
-		//For rviz visual
-		desired_pose.pose.position.z = desired_trans.z;
-		pose_desired_pub.publish(desired_pose);
+    current_trans.x = (pose_msg->position.x * cos(yaw)) - (pose_msg->position.y * sin(yaw));
+    current_trans.y = (pose_msg->position.x * sin(yaw)) + (pose_msg->position.y * cos(yaw));
+    current_trans.z = pose_msg->position.z;
+    // For rviz visual
+    desired_pose.pose.position.z = desired_trans.z;
+    pose_desired_pub.publish(desired_pose);
 
-        	if (dt > 0.02)  // Slow down to 50 Hz.  Maybe make a parameter.
-		{
+    if (dt > 0.02)  // Slow down to 50 Hz.  Maybe make a parameter.
+    {
+      // Compute yaw error and PID terms.
+      // A lower value causes the quadrotor to rotate CCW relative to its own frame
+      error_yaw = (initial_rot.z - current_rot.z);
+      double p_term_yaw = K_yaw_P * error_yaw;
+      double i_term_yaw = K_yaw_I * (error_yaw + total_error_yaw);
+      double d_term_yaw = K_yaw_D * (error_yaw - previous_error_yaw) / dt;
+      if (i_term_yaw >= ((RATE_MAX - RATE_MIN) / 2))
+      {
+        i_term_yaw = (RATE_MAX - RATE_MIN) / 2;
+      }
+      else if (i_term_yaw <= ((RATE_MIN - RATE_MAX) / 2))
+      {
+        i_term_yaw = (RATE_MIN - RATE_MAX) / 2;
+      }
 
-            		// Compute yaw error and PID terms.
-            		// A lower value causes the quadrotor to rotate CCW relative to its own frame
-			error_yaw = (initial_rot.z - current_rot.z);
-			double p_term_yaw = K_yaw_P * error_yaw;
-			double i_term_yaw = K_yaw_I * (error_yaw + total_error_yaw);
-			double d_term_yaw = K_yaw_D * (error_yaw - previous_error_yaw)/dt;
-			if (i_term_yaw >= ((RATE_MAX - RATE_MIN)/2))
-			{
-				i_term_yaw = (RATE_MAX - RATE_MIN)/2;
-			}
-			else if (i_term_yaw <= ((RATE_MIN - RATE_MAX)/2))
-			{
-				i_term_yaw = (RATE_MIN - RATE_MAX)/2;
-			}
+      // Compute Y error and PID terms
+      // A lower value causes the quadrotor to roll left
+      error_y = -(initial_trans.y - current_trans.y);
+      double p_term_y = K_y_P * error_y;
+      double i_term_y = K_y_I * (error_y + total_error_y);
+      double d_term_y = K_y_D * (error_y - previous_error_y) / dt;
+      if (i_term_y >= ((RATE_MAX - RATE_MIN) / 2))
+      {
+        i_term_y = (RATE_MAX - RATE_MIN) / 2;
+      }
+      else if (i_term_y <= ((RATE_MIN - RATE_MAX) / 2))
+      {
+        i_term_y = (RATE_MIN - RATE_MAX) / 2;
+      }
 
-            		// Compute Y error and PID terms
-            		// A lower value causes the quadrotor to roll left
-			error_y = -(initial_trans.y - current_trans.y);
-			double p_term_y = K_y_P * error_y;
-			double i_term_y = K_y_I * (error_y + total_error_y);
-			double d_term_y = K_y_D * (error_y - previous_error_y)/dt;
-			if (i_term_y >= ((RATE_MAX - RATE_MIN)/2))
-			{
-				i_term_y = (RATE_MAX - RATE_MIN)/2;
-			}
-			else if (i_term_y <= ((RATE_MIN - RATE_MAX)/2))
-			{
-				i_term_y = (RATE_MIN - RATE_MAX)/2;
-			}
+      // Compute X error and PID terms
+      // A lower value causes the quadrotor to pitch forward
+      error_x = -(initial_trans.x - current_trans.x);
+      double p_term_x = K_x_P * error_x;
+      double i_term_x = K_x_I * (error_x + total_error_x);
+      double d_term_x = K_x_D * (error_x - previous_error_x) / dt;
+      if (i_term_x >= ((RATE_MAX - RATE_MIN) / 2))
+      {
+        i_term_x = (RATE_MAX - RATE_MIN) / 2;
+      }
+      else if (i_term_x <= ((RATE_MIN - RATE_MAX) / 2))
+      {
+        i_term_x = (RATE_MIN - RATE_MAX) / 2;
+      }
 
-            		// Compute X error and PID terms
-            		// A lower value causes the quadrotor to pitch forward
-			error_x = -(initial_trans.x - current_trans.x);
-			double p_term_x = K_x_P * error_x;
-			double i_term_x = K_x_I * (error_x + total_error_x);
-			double d_term_x = K_x_D * (error_x - previous_error_x)/dt;
-			if (i_term_x >= ((RATE_MAX - RATE_MIN)/2))
-			{
-				i_term_x = (RATE_MAX - RATE_MIN)/2;
-			}
-			else if (i_term_x <= ((RATE_MIN - RATE_MAX)/2))
-			{
-				i_term_x = (RATE_MIN - RATE_MAX)/2;
-			}
+      // Compute Z error and PID terms
+      // A higher value causes the quadrotor to gain altitude
+      error_z = (initial_trans.z + desired_alt - current_trans.z);
+      double p_term_z = K_z_P * error_z;
+      double i_term_z = K_z_I * (error_z + total_error_z);
+      double d_term_z = K_z_D * (error_z - previous_error_z) / dt;
 
-            		// Compute Z error and PID terms
-            		// A higher value causes the quadrotor to gain altitude
-			error_z = (initial_trans.z + desired_alt - current_trans.z);
-			double p_term_z = K_z_P * error_z;
-			double i_term_z = K_z_I * (error_z + total_error_z);
-			double d_term_z = K_z_D * (error_z - previous_error_z)/dt;
+      if (i_term_z >= (THROTTLE_MAX - THROTTLE_MIN))
+      {
+        i_term_z = THROTTLE_MAX - THROTTLE_MIN;
+      }
+      else if (i_term_z <= (THROTTLE_MIN - THROTTLE_MIN))
+      {
+        i_term_z = THROTTLE_MIN - THROTTLE_MIN;  // Aka ZERO
+      }
 
-			if (i_term_z >= (THROTTLE_MAX - THROTTLE_MIN))
-			{
-				i_term_z = THROTTLE_MAX - THROTTLE_MIN;
-			}	
-			else if (i_term_z <= (THROTTLE_MIN - THROTTLE_MIN))
-			{
-				i_term_z = THROTTLE_MIN - THROTTLE_MIN; //Aka ZERO
-			}
+      roscopter::RC send_rc_msg;
+      // The angular rates are relative and APM will stabilize the craft but
+      // throttle is absolute.
+      send_rc_msg.channel[ROLL] = rate_bound(RATE_MID + p_term_y + i_term_y + d_term_y);  // roll
+      send_rc_msg.channel[PITCH] = rate_bound(RATE_MID + p_term_x + i_term_x + d_term_x);  // pitch
+      send_rc_msg.channel[THROTTLE] = throttle_bound(THROTTLE_MIN + p_term_z + i_term_z + d_term_z);  // throttle
+      send_rc_msg.channel[YAW] = rate_bound(RATE_MID + p_term_yaw + i_term_yaw + d_term_yaw);  // yaw
+      send_rc_pub.publish(send_rc_msg);
 
-			roscopter::RC send_rc_msg;
-			// The angular rates are relative and APM will stabilize the craft but
-			// throttle is absolute.
-			send_rc_msg.channel[ROLL] = rate_bound(RATE_MID + p_term_y + i_term_y + d_term_y);	//roll
-			send_rc_msg.channel[PITCH] = rate_bound(RATE_MID + p_term_x + i_term_x + d_term_x);	//pitch
-			send_rc_msg.channel[THROTTLE] = throttle_bound(THROTTLE_MIN + p_term_z + i_term_z + d_term_z);//throttle
-			send_rc_msg.channel[YAW] = rate_bound(RATE_MID + p_term_yaw + i_term_yaw + d_term_yaw);	//yaw
-			send_rc_pub.publish(send_rc_msg);
-
-			//Keep track of old values
-			old_time = current_time;
-			previous_error_yaw = error_yaw;
-			total_error_yaw += error_yaw;
-			previous_error_x = error_x;
-			total_error_x+= error_x;
-			previous_error_y = error_y;
-			total_error_y += error_y;
-			previous_error_z = error_z;
-			total_error_z += error_z;
-		}
-	}
+      // Keep track of old values
+      old_time = current_time;
+      previous_error_yaw = error_yaw;
+      total_error_yaw += error_yaw;
+      previous_error_x = error_x;
+      total_error_x += error_x;
+      previous_error_y = error_y;
+      total_error_y += error_y;
+      previous_error_z = error_z;
+      total_error_z += error_z;
+    }
+  }
 }
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "apm_hover_control");
-	ros::NodeHandle n;
-	initROSParams();
-	euler_desired_pub = n.advertise<geometry_msgs::Vector3>("mocap/euler_desired", 1);
-	alt_desired_pub = n.advertise<geometry_msgs::Vector3>("mocap/alt_desired", 1);
-	pose_desired_pub = n.advertise<geometry_msgs::PoseStamped>("mocap/pose_desired", 1);
-	send_rc_pub = n.advertise<roscopter::RC>("send_rc", 1);
+  ros::init(argc, argv, "apm_hover_control");
+  ros::NodeHandle n;
+  initROSParams();
+  euler_desired_pub = n.advertise<geometry_msgs::Vector3>("mocap/euler_desired", 1);
+  alt_desired_pub = n.advertise<geometry_msgs::Vector3>("mocap/alt_desired", 1);
+  pose_desired_pub = n.advertise<geometry_msgs::PoseStamped>("mocap/pose_desired", 1);
+  send_rc_pub = n.advertise<roscopter::RC>("send_rc", 1);
 
-    	pose_sub = n.subscribe("mocap/pose", 1, pose_callback);
-    	joy_sub = n.subscribe("joy", 1, joy_callback);
-    	control_mode_sub = n.subscribe("control_mode",1, control_mode_callback);
+  pose_sub = n.subscribe("mocap/pose", 1, pose_callback);
+  joy_sub = n.subscribe("joy", 1, joy_callback);
+  control_mode_sub = n.subscribe("control_mode", 1, control_mode_callback);
 
-	dynamic_reconfigure::Server<apm::controlConfig> server;
-	dynamic_reconfigure::Server<apm::controlConfig>::CallbackType f;
-	f = boost::bind(&gains_callback, _1, _2);
-	server.setCallback(f);
+  dynamic_reconfigure::Server<apm::controlConfig> server;
+  dynamic_reconfigure::Server<apm::controlConfig>::CallbackType f;
+  f = boost::bind(&gains_callback, _1, _2);
+  server.setCallback(f);
 
-	ros::spin();
-	return 0;
+  ros::spin();
+  return 0;
 }
