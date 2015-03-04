@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- vim: ft=xml -->
+	<!-- example launch script for ArduPilotMega based FCU's -->
+  <arg name="fcu_url" default="/dev/ttyACM0:115200" />
+  <arg name="gcs_url" default="udp://@localhost" />
+  <arg name="tgt_system" default="1" />
+  <arg name="tgt_component" default="50" />
+
+  <include file="$(find ams)/launch/node.launch">
+    <arg name="blacklist_yaml" value="$(find ams)/launch/apm2_blacklist.yaml" />
+    <arg name="config_yaml" value="$(find ams)/launch/apm2_config.yaml" />
+
+    <arg name="fcu_url" value="$(arg fcu_url)" />
+    <arg name="gcs_url" value="$(arg gcs_url)" />
+    <arg name="tgt_system" value="$(arg tgt_system)" />
+    <arg name="tgt_component" value="$(arg tgt_component)" />
+  </include>
+</launch>

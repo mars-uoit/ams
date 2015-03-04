@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find ams)/launch/apm2.launch" />
+  <group ns ="ams">
+    <!-- MOCAP     -->
+    <node pkg="mocap_optitrack" 
+      type="mocap_node" 
+      name="mocap_node" 
+      respawn="false"
+      launch-prefix=""
+      required="true">
+      <rosparam file="$(find ams)/viz/mocap.yaml" command="load" />
+    </node>
+    <!-- JOY -->
+    <node respawn="true" pkg="joy" type="joy_node" name="joy" >
+      <param name="dev" type="string" value="/dev/input/js0" />
+      <param name="deadzone" value="0.005" />
+      <param name="~autorepeat_rate" value="10" />
+    </node>
+    <!-- AMS -->
+    <param name="robot_description" command="cat $(find ams)/urdf/ams.urdf" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+    <node pkg="ams" type="ams_manager_node" name="ams_manager" respawn="true" output="screen" />
+    <node pkg="ams" type="ams_quad_controller_node" name="ams_quad_controller" respawn="true"  output="screen" >
+      <rosparam command="load" file="$(find ams)/config/3dr_x4_apm.yaml" />
+    </node>
+    <node pkg="ams" type="ams_teleop_node" name="ams_teleop" respawn="true"  output="screen" />
+    <node pkg="ams" type="ams_trajectory_planner" name="ams_trajectory_planner" respawn="true"  output="screen" />
+    <!-- VISUALIZATION -->
+    <node pkg="rviz" type="rviz" name="rviz" args=" -d $(find ams)/rviz/ams_rviz.rviz" respawn="true" />
+    <!-- BAG -->
+    <node pkg="rosbag" type="record" name="rosbag" args="record -o /home/marslab/bagfiles/ /ams/mocap/pose /ams/mocap/pose_desired /ams/rc/override" />
+  </group>
+</launch>
+

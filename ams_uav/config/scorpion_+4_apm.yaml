@@ -1,0 +1,41 @@
+control_freq: 30
+roll:
+  moving_P: 300
+  moving_I: 0
+  moving_D: 0
+  holding_P: 300
+  holding_I: 0
+  holding_D: 0
+  landing_P: 300
+  landing_I: 0
+  landing_D: 0
+pitch:
+  moving_P: 300
+  moving_I: 0
+  moving_D: 0
+  holding_P: 300
+  holding_I: 0
+  holding_D: 0
+  landing_P: 300
+  landing_I: 0
+  landing_D: 0
+yaw:
+  moving_P: 25
+  moving_I: 0
+  moving_D: 0
+  holding_P: 10
+  holding_I: 0
+  holding_D: 0
+throttle:
+  moving_P: 300
+  moving_I: 0
+  moving_D: 0
+  holding_P: 300
+  holding_I: 0
+  holding_D: 0
+  landing_P: 50
+  landing_I: 50
+  landing_D: 2
+  takeoff_P: 900
+  takeoff_I: 250
+  takeoff_D: 15

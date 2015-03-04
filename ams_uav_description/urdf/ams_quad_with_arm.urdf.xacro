@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<robot name="ams_quad" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:property name="PI" value="3.1415926535897931" />
+
+  <xacro:property name="legs_vertical_offset" value="-0.15" />
+  <xacro:property name="mocap_vertical_offset" value="-0.06" />
+
+
+  <!-- MOCAP-LINK -->
+  <!--Location of the trackable-->
+  <link name="mocap_link"/>
+  
+  <!-- BASE-LINK -->
+  <!-- The location of the FCU-->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 -0.05" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://ams_uav_description/meshes/ams_quad.stl" />
+      </geometry>
+    </visual>
+  </link>
+
+
+  <!-- BOTTOM-LINK -->
+  <!--Bottom of quadrotor-->
+
+
+  <joint name="mocap_base_joint" type="fixed">
+    <origin xyz="0 0 ${mocap_vertical_offset}" rpy="0 0 0" />
+    <parent link="mocap_link"/>
+    <child link="base_link" />
+  </joint>
+
+
+  <xacro:include filename="$(find lynxmotion_al5d_support)/urdf/al5d_macro.xacro"/>
+  <lynxmotion_al5d prefix="al5d_" parent_link="base_link">
+    <origin xyz="0 0 0"/>
+  </lynxmotion_al5d>
+
+</robot>

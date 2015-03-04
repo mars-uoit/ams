@@ -1,0 +1,17 @@
+# 
+# Definition of all trackable objects
+# Identifier corresponds to Trackable ID set in Tracking Tools
+#
+#
+mocap_model: 'SKELETON_WITHOUT_TOES'
+
+rigid_bodies:
+    '1':
+        pose: mocap/pose             # mocap_node/pose
+        child_frame_id: mocap_link
+        parent_frame_id: world
+    '2':
+        pose: target/pose
+        child_frame_id: target
+        parent_frame_id: world
+

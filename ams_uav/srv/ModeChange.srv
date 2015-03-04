@@ -1,0 +1,3 @@
+int32 mode
+geometry_msgs/PoseStamped desired_pose
+---

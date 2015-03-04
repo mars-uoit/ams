@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<robot name="ams_quad" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:property name="PI" value="3.1415926535897931" />
+
+  <xacro:property name="legs_vertical_offset" value="-0.15" />
+  <xacro:property name="mocap_vertical_offset" value="-0.0525" />
+
+  <!-- BASE-LINK -->
+  <!-- The location of the FCU-->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 -0.05" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://ams_uav_description/meshes/ams_quad.stl" />
+      </geometry>
+    </visual>
+  </link>
+
+  <!-- MOCAP-LINK -->
+  <!--Location of the trackable-->
+  <link name="mocap_link"/>
+
+  <!-- BOTTOM-LINK -->
+  <!--Bottom of quadrotor-->
+  <link name="bottom_link"/>
+
+  <link name="arm_link"/>
+
+  <joint name="mocap_base_joint" type="fixed">
+    <origin xyz="0 0 ${mocap_vertical_offset}" rpy="0 0 0" />
+    <parent link="mocap_link"/>
+    <child link="base_link" />
+  </joint>
+
+  <joint name="base_bottom_joint" type="fixed">
+    <origin xyz="0 0 ${legs_vertical_offset}" rpy="0 0 0" />
+    <parent link="base_link"/>
+    <child link="bottom_link" />
+  </joint>
+
+  <joint name="base_arm_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="base_link"/>
+    <child link="arm_link" />
+  </joint>
+
+  <!-- We can configure joints velocity limit and lower/upper limits
+  to allow access to different operational areas, e.g. left handed vs. right handed robot -->
+  <xacro:property name="joints_vlimit" value="1.571"/>
+  <xacro:property name="pan_llimit" value="-2.617"/>
+  <xacro:property name="pan_ulimit" value="2.617"/>
+  <xacro:property name="shoulder_llimit" value="-2.2"/>
+  <xacro:property name="shoulder_ulimit" value="2.16"/>
+  <xacro:property name="elbow_llimit" value="-2.42"/>
+  <xacro:property name="elbow_ulimit" value="2.38"/>
+  <xacro:property name="wrist_llimit" value="-1.72"/>
+  <xacro:property name="wrist_ulimit" value="1.68"/>
+
+
+  <xacro:include filename="$(find lynxmotion_al5d_support)/urdf/al5d_macro.xacro"/>
+  <lynxmotion_al5d prefix="al5d_" parent_link="arm_link">
+    <origin xyz="0 0 0"/>
+  </lynxmotion_al5d>
+
+</robot>
+

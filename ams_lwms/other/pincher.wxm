@@ -1,0 +1,41 @@
+/* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
+/* [ Created with wxMaxima version 13.04.2 ] */
+
+/* [wxMaxima: input   start ] */
+c1: cos(theta_1);s1: sin(theta_1);c2: cos(theta_2);s2: sin(theta_2);c3: cos(theta_3); s3: sin(theta_3); c4: cos(theta_4); s4: sin(theta_4);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_01: matrix ([c1,0,s1, 0],[s1, 0, -c1,0],[0,1,0,l_12],[0,0,0,1]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_12: matrix ([-s2,-c2,0,-l_23*s2],[c2,-s2,0,l_23*c2],[0,0,1,0],[0,0,0,1]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_23: matrix ([c3,-s3,0,c3*l_34],[s3,c3,0,s3*l_34],[0,0,1,0],[0,0,0,1]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_34: matrix ([c4,-s4,0,c4*l_4G],[s4,c4,0,s4*l_4G],[0,0,1,0],[0,0,0,1]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T: T_01.T_12.T_23.T_34;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+Tx: col(T,4);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+Txp:trigreduce(trigexpand(trigsimp(Tx)));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+trigreduce(trigexpand(T_01.Txp));
+/* [wxMaxima: input   end   ] */
+
+/* Maxima can't load/batch files which end with a comment! */
+"Created with wxMaxima"$

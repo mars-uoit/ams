@@ -1,0 +1,33 @@
+<robot name="ams_quadrotor">
+  <!-- BASE-LINK -->
+  <!--Actual body/chassis of the robot-->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0.785398163" />
+      <geometry>
+        <mesh filename="package://ams/urdf/ams_base.stl"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <!-- MOCAP-LINK -->
+  <!--Location of the trackable-->
+  <link name="mocap_link"/>
+
+  <!-- BOTTOM-LINK -->
+  <!--Bottom of quadrotor-->
+  <link name="bottom_link"/>
+
+  <joint name="mocap_base_joint" type="fixed">
+    <origin xyz="0 0 -0.0525" rpy="0 0 0" />
+    <parent link="mocap_link"/>
+    <child link="base_link" />
+  </joint>
+
+  <joint name="base_bottom_joint" type="fixed">
+    <origin xyz="0 0 -0.165" rpy="0 0 0" />
+    <parent link="base_link"/>
+    <child link="bottom_link" />
+  </joint>
+
+</robot>

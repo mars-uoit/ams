@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <group ns ="mavros">
+    <!-- PID -->
+    <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" />
+    <!-- PLOTTING -->
+    <node pkg="rqt_plot" type="rqt_plot" name="rqt_plot_rc" args=" rc/override/channels[0] rc/override/channels[1] rc/override/channels[2] rc/override/channels[3]" />
+    <node pkg="rqt_plot" type="rqt_plot" name="rqt_plot_pose_position" args=" mocap/position_desired/x:y:z  mocap/pose/position/x:y:z" />
+  </group>
+</launch>

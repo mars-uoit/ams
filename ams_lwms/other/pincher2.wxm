@@ -1,0 +1,105 @@
+/* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
+/* [ Created with wxMaxima version 13.04.2 ] */
+
+/* [wxMaxima: input   start ] */
+c1: cos(theta_1);
+s1: sin(theta_1);
+c2: cos(theta_2);
+s2: sin(theta_2);
+c3: cos(theta_3); 
+s3: sin(theta_3); 
+c4: cos(theta_4); 
+s4: sin(theta_4);
+theta_4: alpha - theta_2 - theta_3;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_01: matrix ([c1,-s1, 0, 0],[s1, c1, 0,0],[0,0,1,l_12],[0,0,0,1]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_12: matrix ([c2,-s2,0,0],[0,0,-1,0],[s2,c2,0,0],[0,0,0,1]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_02: T_01.T_12;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_23: matrix ([c3,-s3,0,l_23],[s3,c3,0,0],[0,0,1,0],[0,0,0,1]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_34: matrix ([c4,-s4,0,l_34],[s4,c4,0,0],[0,0,1,0],[0,0,0,1]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_4G: matrix([1,0,0,l_4G],[0,1,0,0],[0,0,1,0],[0,0,0,1]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_2G: trigreduce(T_23.T_34.T_4G);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_0G: trigsimp(T_02.T_2G);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+P :trigsimp(col(T_0G,4));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+T_10: trigsimp(invert(T_01));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+Pp: trigreduce(trigsimp(T_10.P));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+P2: trigreduce(trigsimp((Pp[1]^2+Pp[3]^2)));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+2*cos(theta_4)*l_4G^2+2*l_4G^2+2*l_34*cos(theta_4+theta_3)*l_4G+2*l_34*cos(theta_3)*l_4G+l_34^2 = Px^2 + Pz^2;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+trigsimp(2*cos(theta_4)*l_4G^2+2*l_4G^2+2*l_34*cos(theta_4+theta_3)*l_4G+2*l_34*cos(theta_3)*l_4G+l_34^2=Pz^2+Px^2);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+trigsimp((cos(theta_2)*sin(theta_4+theta_3)+sin(theta_2)*cos(theta_4+theta_3)+cos(theta_2)*sin(theta_3)+sin(theta_2)*cos(theta_3))*l_4G+l_34*sin(theta_2)+l_12);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+ratsimp((cos(theta_2)*sin(theta_3)+sin(theta_2)*cos(theta_3)-cos(theta_2)*sin(theta_2-alpha)+sin(theta_2)*cos(theta_2-alpha))*l_4G+l_34*sin(theta_2)+l_12);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+ratsimp((cos(theta_2)*sin(theta_3)+sin(theta_2)*cos(theta_3)-cos(theta_2)*sin(theta_2-alpha)+sin(theta_2)*cos(theta_2-alpha))*l_4G+l_34*sin(theta_2)+l_12);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+trigreduce((cos(theta_2)*sin(theta_3)+sin(theta_2)*cos(theta_3)-cos(theta_2)*sin(theta_2-alpha)+sin(theta_2)*cos(theta_2-alpha))*l_4G+l_34*sin(theta_2)+l_12);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+ratsimp(sin(theta_3+theta_2)*l_4G+sin(alpha)*l_4G+l_34*sin(theta_2)+l_12);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+trigsimp([l_4G^2+2*l_23*cos(theta_4+theta_3)*l_4G+2*l_34*cos(theta_4)*l_4G+2*((l_23*l_34*cos(theta_3+2*theta_2))/2+(l_23*l_34*cos(theta_3))/2)+2*((l_23*l_34*cos(theta_3))/2−(l_23*l_34*cos(theta_3+2*theta_2))/2)+l_34^2+l_23^2]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+ratsimp((cos(theta_1)*cos(theta_2)*cos(theta_4+theta_3)−cos(theta_1)*sin(theta_2)*sin(theta_4+theta_3))*l_4G−l_34*cos(theta_1)*sin(theta_2)*sin(theta_3)+l_34*cos(theta_1)*cos(theta_2)*cos(theta_3)+l_23*cos(theta_1)*cos(theta_2));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+ratsimp((cos(theta_1)*cos(theta_2)*cos(theta_4+theta_3)−cos(theta_1)*sin(theta_2)*sin(theta_4+theta_3))*l_4G−l_34*cos(theta_1)*sin(theta_2)*sin(theta_3)+l_34*cos(theta_1)*cos(theta_2)*cos(theta_3)+l_23*cos(theta_1)*cos(theta_2));
+/* [wxMaxima: input   end   ] */
+
+/* Maxima can't load/batch files which end with a comment! */
+"Created with wxMaxima"$

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<robot name="3dr_x4" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:property name="PI" value="3.1415926535897931" />
+
+  <xacro:property name="legs_vertical_offset" value="-0.165" />
+  <xacro:property name="mocap_vertical_offset" value="-0.0525" />
+
+  <!-- MOCAP-LINK -->
+  <!--Location of the trackable-->
+  <link name="mocap_link"/>
+  
+  <!-- BASE-LINK -->
+  <!-- The location of the FCU-->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 -0.05" rpy="${PI/2} 0 ${PI/4}" />
+      <geometry>
+        <mesh filename="package://ams_uav_description/meshes/3dr-x4.stl" 
+          scale="0.001 0.001 0.001" />
+      </geometry>
+    </visual>
+  </link>
+
+
+
+  <!-- BOTTOM-LINK -->
+  <!--Bottom of quadrotor-->
+  <link name="bottom_link"/>
+
+  <joint name="mocap_base_joint" type="fixed">
+    <origin xyz="0 0 ${mocap_vertical_offset}" rpy="0 0 0" />
+    <parent link="mocap_link"/>
+    <child link="base_link" />
+  </joint>
+
+  <joint name="base_bottom_joint" type="fixed">
+    <origin xyz="0 0 ${legs_vertical_offset}" rpy="0 0 0" />
+    <parent link="base_link"/>
+    <child link="bottom_link" />
+  </joint>
+
+</robot>
